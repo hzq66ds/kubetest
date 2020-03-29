@@ -1,3 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  selector:
+    app: nginx
+  type: NodePort
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 30001
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: 443
+      nodePort: 30002
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,6 +37,31 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx:1.7.9
-        ports: 
-          - containerPort: 80
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: my-ingress-for-nginx  # Ingress 的名字，仅用于标识
+spec:
+  rules:                      # Ingress 中定义 L7 路由规则
+  - host: localhost   # 根据 virtual hostname 进行路由（请使用您自己的域名）
+    http:
+      paths:                  # 按路径进行路由
+      - path: /
+        backend:
+          serviceName: nginx-service  # 指定后端的 Service 为之前创建的 nginx-service
+          servicePort: 80
+
+
+
+
+
+
+
+
+
+
